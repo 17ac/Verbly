@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verbly - 英語動詞学習アプリ</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+        }
+        
+        .question-section {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .verb-display {
+            font-size: 2em;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        
+        .question-type {
+            font-size: 1.2em;
+            color: #7f8c8d;
+            margin-bottom: 20px;
+        }
+        
+        .choices-section {
+            margin-bottom: 30px;
+        }
+        
+        .choice-btn {
+            display: block;
+            width: 100%;
+            font-size: 1.2em;
+            padding: 15px;
+            margin: 10px 0;
+            border: 2px solid #3498db;
+            border-radius: 5px;
+            background-color: white;
+            color: #3498db;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+        }
+        
+        .choice-btn:hover {
+            background-color: #3498db;
+            color: white;
+        }
+        
+        .choice-btn.correct {
+            background-color: #27ae60;
+            color: white;
+            border-color: #27ae60;
+        }
+        
+        .choice-btn.incorrect {
+            background-color: #e74c3c;
+            color: white;
+            border-color: #e74c3c;
+        }
+        
+        .choice-btn:disabled {
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+        
+        button {
+            font-size: 1.2em;
+            padding: 12px 30px;
+            margin: 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        .check-btn {
+            background-color: #3498db;
+            color: white;
+        }
+        
+        .check-btn:hover {
+            background-color: #2980b9;
+        }
+        
+        .next-btn {
+            background-color: #27ae60;
+            color: white;
+        }
+        
+        .next-btn:hover {
+            background-color: #229954;
+        }
+        
+        .result {
+            text-align: center;
+            font-size: 1.3em;
+            margin-bottom: 20px;
+            min-height: 30px;
+        }
+        
+        .correct {
+            color: #27ae60;
+            font-weight: bold;
+        }
+        
+        .incorrect {
+            color: #e74c3c;
+            font-weight: bold;
+        }
+        
+        .answer-display {
+            background-color: #ecf0f1;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+        
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            background-color: #34495e;
+            color: white;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        
+        .stat-item {
+            text-align: center;
+        }
+        
+        .stat-number {
+            font-size: 1.5em;
+            font-weight: bold;
+        }
+        
+        .stat-label {
+            font-size: 0.9em;
+        }
+        
+        .category-selector {
+            background-color: #ecf0f1;
+            padding: 20px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        
+        .category-title {
+            font-size: 1.1em;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #2c3e50;
+            text-align: center;
+        }
+        
+        .category-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+        }
+        
+        .category-btn {
+            padding: 8px 16px;
+            border: 2px solid #3498db;
+            border-radius: 20px;
+            background-color: white;
+            color: #3498db;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: all 0.3s;
+        }
+        
+        .category-btn:hover {
+            background-color: #3498db;
+            color: white;
+        }
+        
+        .category-btn.active {
+            background-color: #2980b9;
+            color: white;
+            border-color: #2980b9;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Verbly</h1>
+        
+        <div class="category-selector">
+            <div class="category-title">学習ジャンルを選択</div>
+            <div class="category-buttons">
+                <button class="category-btn active" onclick="selectCategory('all')">すべて</button>
+                <button class="category-btn" onclick="selectCategory('general')">一般用語</button>
+                <button class="category-btn" onclick="selectCategory('engineer')">技術用語</button>
+            </div>
+        </div>
+        
+        <div class="stats">
+            <div class="stat-item">
+                <div class="stat-number" id="totalQuestions">0</div>
+                <div class="stat-label">総問題数</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number" id="correctAnswers">0</div>
+                <div class="stat-label">正解数</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number" id="accuracy">0%</div>
+                <div class="stat-label">正解率</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number" id="categoryInfo">すべて (108フレーズ)</div>
+                <div class="stat-label">現在のジャンル</div>
+            </div>
+        </div>
+        
+        <div class="question-section">
+            <div class="verb-display" id="verbDisplay"></div>
+            <div class="question-type" id="questionType">このフレーズの意味は？</div>
+        </div>
+        
+        <div class="choices-section" id="choicesSection">
+            <!-- 選択肢がここに動的に生成されます -->
+        </div>
+        
+        <div style="text-align: center;">
+            <button class="next-btn" id="nextBtn" onclick="nextQuestion()" style="display: none;">次の問題</button>
+        </div>
+        
+        <div class="result" id="result"></div>
+    </div>
+
+    <script>
+        // 名詞+動詞セットデータベース（エンジニア系・一般系の2分類）
+        const verbCategories = {
+            general: [
+                // 基本的な名詞+動詞の組み合わせ
+                { phrase: "make a decision", japanese: "決断する" },
+                { phrase: "take a break", japanese: "休憩する" },
+                { phrase: "give advice", japanese: "助言する" },
+                { phrase: "have a meeting", japanese: "会議をする" },
+                { phrase: "do homework", japanese: "宿題をする" },
+                { phrase: "get information", japanese: "情報を得る" },
+                { phrase: "find a solution", japanese: "解決策を見つける" },
+                { phrase: "ask a question", japanese: "質問する" },
+                { phrase: "tell a story", japanese: "話をする" },
+                { phrase: "show interest", japanese: "興味を示す" },
+                { phrase: "keep a promise", japanese: "約束を守る" },
+                { phrase: "start a project", japanese: "プロジェクトを始める" },
+                { phrase: "follow instructions", japanese: "指示に従う" },
+                { phrase: "meet requirements", japanese: "要件を満たす" },
+                { phrase: "change plans", japanese: "計画を変更する" },
+                { phrase: "open a file", japanese: "ファイルを開く" },
+                { phrase: "close a deal", japanese: "取引を成立させる" },
+                { phrase: "write a report", japanese: "報告書を書く" },
+                { phrase: "read documentation", japanese: "ドキュメントを読む" },
+                { phrase: "hold a discussion", japanese: "議論する" },
+                { phrase: "bring results", japanese: "結果をもたらす" },
+                { phrase: "put effort", japanese: "努力する" },
+                { phrase: "turn on the light", japanese: "電気をつける" },
+                { phrase: "run a business", japanese: "事業を経営する" },
+                { phrase: "play a role", japanese: "役割を果たす" },
+                { phrase: "hear feedback", japanese: "フィードバックを聞く" },
+                { phrase: "let someone know", japanese: "誰かに知らせる" },
+                { phrase: "seem important", japanese: "重要に見える" },
+                { phrase: "help others", japanese: "他の人を助ける" },
+                { phrase: "try something new", japanese: "新しいことを試す" },
+                { phrase: "feel confident", japanese: "自信を感じる" },
+                { phrase: "work together", japanese: "一緒に働く" },
+                { phrase: "call a meeting", japanese: "会議を招集する" },
+                { phrase: "move forward", japanese: "前進する" },
+                { phrase: "live a life", japanese: "人生を生きる" },
+                { phrase: "believe in success", japanese: "成功を信じる" },
+                { phrase: "know the facts", japanese: "事実を知る" },
+                { phrase: "see the problem", japanese: "問題を見る" },
+                { phrase: "come to a conclusion", japanese: "結論に達する" },
+                { phrase: "think about it", japanese: "それについて考える" },
+                { phrase: "look for opportunities", japanese: "機会を探す" },
+                { phrase: "want success", japanese: "成功を望む" },
+                { phrase: "use resources", japanese: "資源を使う" },
+                { phrase: "go to the next step", japanese: "次のステップに進む" },
+                { phrase: "be ready", japanese: "準備ができている" },
+                { phrase: "have experience", japanese: "経験がある" },
+                { phrase: "say goodbye", japanese: "さよならを言う" },
+                { phrase: "stand up", japanese: "立ち上がる" },
+                { phrase: "sit down", japanese: "座る" },
+                { phrase: "happen naturally", japanese: "自然に起こる" },
+                { phrase: "mean something", japanese: "何かを意味する" }
+            ],
+            engineer: [
+                // 技術用語のコロケーション（技術文書でよく使われる組み合わせ）
+                { phrase: "implement a feature", japanese: "機能を実装する" },
+                { phrase: "develop an application", japanese: "アプリケーションを開発する" },
+                { phrase: "deploy the code", japanese: "本番環境に配置する" },
+                { phrase: "configure the system", japanese: "システムを設定する" },
+                { phrase: "initialize the database", japanese: "データベースを初期化する" },
+                { phrase: "execute a script", japanese: "命令文を実行する" },
+                { phrase: "compile the source", japanese: "ソースを機械語に変換する" },
+                { phrase: "debug the issue", japanese: "問題を修正する" },
+                { phrase: "refactor the codebase", japanese: "既存コードを改善する" },
+                { phrase: "optimize performance", japanese: "処理速度を向上させる" },
+                { phrase: "integrate the API", japanese: "外部機能を統合する" },
+                { phrase: "migrate data", japanese: "データを移行する" },
+                { phrase: "validate input", japanese: "入力を検証する" },
+                { phrase: "authenticate users", japanese: "利用者の身元を確認する" },
+                { phrase: "authorize access", japanese: "アクセス権限を与える" },
+                { phrase: "encrypt sensitive data", japanese: "機密データを暗号化する" },
+                { phrase: "parse JSON data", japanese: "JSON形式のデータを解析する" },
+                { phrase: "serialize objects", japanese: "オブジェクトを直列化する" },
+                { phrase: "cache the results", japanese: "結果を一時保存する" },
+                { phrase: "override methods", japanese: "既存の処理を上書きする" },
+                { phrase: "extend functionality", japanese: "機能を拡張する" },
+                { phrase: "inherit properties", japanese: "属性を継承する" },
+                { phrase: "handle errors", japanese: "エラーを処理する" },
+                { phrase: "process requests", japanese: "要求を処理する" },
+                { phrase: "render components", japanese: "画面要素を描画する" },
+                { phrase: "bind event handlers", japanese: "イベント処理を結び付ける" },
+                { phrase: "mount the component", japanese: "部品を組み込む" },
+                { phrase: "subscribe to events", japanese: "イベント通知を受け取る" },
+                { phrase: "emit signals", japanese: "信号を送出する" },
+                { phrase: "resolve promises", japanese: "非同期処理を解決する" },
+                { phrase: "reject requests", japanese: "要求を拒否する" },
+                { phrase: "await responses", japanese: "応答を待機する" },
+                { phrase: "fetch data", japanese: "データを取得する" },
+                { phrase: "mock services", japanese: "仮のサービスを作成する" },
+                { phrase: "assert conditions", japanese: "条件を検証する" },
+                { phrase: "expose endpoints", japanese: "接続点を公開する" },
+                { phrase: "import modules", japanese: "外部機能を取り込む" },
+                { phrase: "export functions", japanese: "関数を出力する" },
+                { phrase: "load configurations", japanese: "設定を読み込む" },
+                { phrase: "bundle assets", japanese: "資産をまとめる" },
+                { phrase: "minify code", japanese: "コードを圧縮する" },
+                { phrase: "transpile TypeScript", japanese: "型付き言語を変換する" },
+                { phrase: "throttle requests", japanese: "要求頻度を制限する" },
+                { phrase: "debounce input", japanese: "連続入力を制御する" },
+                { phrase: "sanitize user data", japanese: "利用者データを無害化する" },
+                { phrase: "normalize data", japanese: "データを正規化する" },
+                { phrase: "flatten arrays", japanese: "配列を平坦化する" },
+                { phrase: "merge branches", japanese: "開発ブランチを統合する" },
+                { phrase: "clone repositories", japanese: "保管庫を複製する" },
+                { phrase: "fork projects", japanese: "プロジェクトを分岐させる" },
+                { phrase: "commit changes", japanese: "変更を確定する" },
+                { phrase: "push updates", japanese: "更新をサーバーに送信する" },
+                { phrase: "pull requests", japanese: "変更をサーバーから取得する" },
+                { phrase: "rebase commits", japanese: "履歴を整理する" },
+                { phrase: "squash commits", japanese: "複数の変更を圧縮する" },
+                { phrase: "stash modifications", japanese: "変更を一時保存する" },
+                { phrase: "build applications", japanese: "アプリケーションを構築する" },
+                { phrase: "test functionality", japanese: "機能を検査する" },
+                { phrase: "monitor performance", japanese: "処理状況を監視する" },
+                { phrase: "scale infrastructure", japanese: "基盤設備を拡張する" },
+                { phrase: "backup databases", japanese: "データベースを保護する" },
+                { phrase: "restore systems", japanese: "システムを復元する" },
+                { phrase: "update dependencies", japanese: "依存関係を更新する" },
+                { phrase: "patch vulnerabilities", japanese: "脆弱性を修正する" },
+                { phrase: "document APIs", japanese: "外部機能を文書化する" },
+                { phrase: "review code", japanese: "コードを査読する" }
+            ]
+        };
+
+        let currentPhrase = {};
+        let currentChoices = [];
+        let correctAnswer = "";
+        let totalQuestions = 0;
+        let correctAnswers = 0;
+        let isAnswered = false;
+        let selectedCategory = 'all';
+        let currentPhrases = [];
+
+        function selectCategory(category) {
+            selectedCategory = category;
+            
+            // ジャンル選択ボタンのアクティブ状態を更新
+            document.querySelectorAll('.category-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            // 現在のフレーズリストを更新
+            updateCurrentPhrases();
+            
+            // 統計をリセット
+            totalQuestions = 0;
+            correctAnswers = 0;
+            updateStats();
+            
+            // 新しい問題を開始
+            nextQuestion();
+        }
+        
+        function updateCurrentPhrases() {
+            if (selectedCategory === 'all') {
+                currentPhrases = [];
+                Object.values(verbCategories).forEach(categoryPhrases => {
+                    currentPhrases = currentPhrases.concat(categoryPhrases);
+                });
+            } else {
+                currentPhrases = verbCategories[selectedCategory];
+            }
+        }
+        
+        function getRandomPhrase() {
+            return currentPhrases[Math.floor(Math.random() * currentPhrases.length)];
+        }
+
+        function generateChoices(correctPhrase) {
+            const choices = [correctPhrase.japanese];
+            const otherPhrases = currentPhrases.filter(p => p.phrase !== correctPhrase.phrase);
+            
+            // ランダムに4つの間違った選択肢を選ぶ
+            while (choices.length < 5 && otherPhrases.length > 0) {
+                const randomPhrase = otherPhrases[Math.floor(Math.random() * otherPhrases.length)];
+                if (!choices.includes(randomPhrase.japanese)) {
+                    choices.push(randomPhrase.japanese);
+                }
+            }
+            
+            // 選択肢が5つに満たない場合は、他のカテゴリからも選択
+            if (choices.length < 5) {
+                const allPhrases = [];
+                Object.values(verbCategories).forEach(categoryPhrases => {
+                    allPhrases.push(...categoryPhrases);
+                });
+                const remainingPhrases = allPhrases.filter(p => p.phrase !== correctPhrase.phrase && !choices.includes(p.japanese));
+                
+                while (choices.length < 5 && remainingPhrases.length > 0) {
+                    const randomIndex = Math.floor(Math.random() * remainingPhrases.length);
+                    choices.push(remainingPhrases[randomIndex].japanese);
+                    remainingPhrases.splice(randomIndex, 1);
+                }
+            }
+            
+            // 選択肢をシャッフル
+            for (let i = choices.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [choices[i], choices[j]] = [choices[j], choices[i]];
+            }
+            
+            return choices;
+        }
+
+        function nextQuestion() {
+            currentPhrase = getRandomPhrase();
+            correctAnswer = currentPhrase.japanese;
+            currentChoices = generateChoices(currentPhrase);
+            isAnswered = false;
+
+            document.getElementById("verbDisplay").textContent = currentPhrase.phrase;
+            document.getElementById("result").innerHTML = "";
+            document.getElementById("nextBtn").style.display = "none";
+            
+            // 選択肢を生成
+            const choicesSection = document.getElementById("choicesSection");
+            choicesSection.innerHTML = "";
+            
+            currentChoices.forEach((choice, index) => {
+                const button = document.createElement("button");
+                button.className = "choice-btn";
+                button.textContent = `${index + 1}. ${choice}`;
+                button.onclick = () => selectChoice(choice, button);
+                choicesSection.appendChild(button);
+            });
+        }
+
+        function selectChoice(selectedAnswer, selectedButton) {
+            if (isAnswered) return;
+
+            totalQuestions++;
+            isAnswered = true;
+
+            const resultDiv = document.getElementById("result");
+            const allButtons = document.querySelectorAll(".choice-btn");
+            
+            // 全てのボタンを無効化し、正解ボタンに次の問題進行機能を追加
+            allButtons.forEach(button => {
+                if (button.textContent.includes(correctAnswer)) {
+                    button.classList.add("correct");
+                    // 正解ボタンクリックで次の問題に進む
+                    button.onclick = () => nextQuestion();
+                } else {
+                    button.disabled = true;
+                }
+            });
+
+            if (selectedAnswer === correctAnswer) {
+                correctAnswers++;
+                selectedButton.classList.add("correct");
+                resultDiv.innerHTML = `<div class="correct">正解！</div>`;
+                
+                updateStats();
+                
+                // 正解の場合は1秒後に自動で次の問題に進む
+                setTimeout(() => {
+                    nextQuestion();
+                }, 1000);
+            } else {
+                selectedButton.classList.add("incorrect");
+                resultDiv.innerHTML = `
+                    <div class="incorrect">不正解</div>
+                    <div class="answer-display">正解: ${correctAnswer}</div>
+                `;
+                
+                updateStats();
+                document.getElementById("nextBtn").style.display = "inline-block";
+                document.getElementById("nextBtn").focus();
+            }
+        }
+
+        function updateStats() {
+            document.getElementById("totalQuestions").textContent = totalQuestions;
+            document.getElementById("correctAnswers").textContent = correctAnswers;
+            const accuracy = totalQuestions > 0 ? Math.round((correctAnswers / totalQuestions) * 100) : 0;
+            document.getElementById("accuracy").textContent = accuracy + "%";
+            
+            // カテゴリ情報を更新
+            const categoryNames = {
+                all: 'すべて',
+                general: '一般用語',
+                engineer: '技術用語'
+            };
+            const categoryName = categoryNames[selectedCategory];
+            const phraseCount = currentPhrases.length;
+            document.getElementById("categoryInfo").textContent = `${categoryName} (${phraseCount}フレーズ)`;
+        }
+
+        // キーボード操作（1-5キーで選択肢を選択）
+        document.addEventListener("keydown", function(event) {
+            if (!isAnswered && event.key >= '1' && event.key <= '5') {
+                const choiceIndex = parseInt(event.key) - 1;
+                const buttons = document.querySelectorAll(".choice-btn");
+                if (buttons[choiceIndex]) {
+                    buttons[choiceIndex].click();
+                }
+            } else if (isAnswered) {
+                if (event.key === "Enter") {
+                    nextQuestion();
+                } else if (event.key >= '1' && event.key <= '5') {
+                    // 正解の選択肢番号を押した場合も次の問題に進む
+                    const choiceIndex = parseInt(event.key) - 1;
+                    const buttons = document.querySelectorAll(".choice-btn");
+                    const selectedButton = buttons[choiceIndex];
+                    if (selectedButton && selectedButton.classList.contains("correct")) {
+                        nextQuestion();
+                    }
+                }
+            }
+        });
+
+        // 初期化
+        updateCurrentPhrases();
+        nextQuestion();
+    </script>
+</body>
+</html>
